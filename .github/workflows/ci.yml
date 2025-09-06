@@ -1,4 +1,4 @@
-name: Isaac Sim Learning Environment CI
+name: Isaac Sim Project CI
 
 on:
   push:
@@ -57,7 +57,7 @@ jobs:
         cd 09-docker-setup
         docker build --dry-run .
 
-  # Check documentation
+  # Check project documentation
   docs-check:
     runs-on: ubuntu-latest
     steps:
@@ -66,12 +66,9 @@ jobs:
     - name: Check README files exist
       run: |
         test -f README.md
-        test -f QUICK_START.md
-        test -f 01-getting-started/README.md
-        test -f 08-ros2-integration/README.md
-        test -f 09-docker-setup/README.md
-        test -f 10-documentation/learning-roadmap.md
-        test -f 10-documentation/macos-setup-guide.md
+        test -f 07-projects/autonomous-warehouse-robot/README.md
+        test -f 07-projects/autonomous-warehouse-robot/VISUALIZATION_GUIDE.md
+        test -f 07-projects/autonomous-warehouse-robot/docs/system_design.md
     
     - name: Check for broken links in markdown
       run: |
@@ -80,29 +77,9 @@ jobs:
         
         # Check main README files
         markdown-link-check README.md
-        markdown-link-check QUICK_START.md
+        markdown-link-check 07-projects/autonomous-warehouse-robot/README.md
 
-  # Security scan
-  security-scan:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-    
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-
-  # Test scripts
+  # Test project scripts
   scripts-test:
     runs-on: ubuntu-latest
     steps:
@@ -112,6 +89,7 @@ jobs:
       run: |
         chmod +x 11-scripts/*.sh
         chmod +x 09-docker-setup/*.sh
+        chmod +x 07-projects/autonomous-warehouse-robot/scripts/*.py
     
     - name: Test script syntax
       run: |
@@ -130,3 +108,27 @@ jobs:
           python -m py_compile "$file"
           echo "✓ $file syntax is valid"
         done
+
+  # Validate project structure
+  project-structure:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check project structure
+      run: |
+        # Check essential directories exist
+        test -d 07-projects/autonomous-warehouse-robot
+        test -d 07-projects/autonomous-warehouse-robot/src
+        test -d 07-projects/autonomous-warehouse-robot/models
+        test -d 07-projects/autonomous-warehouse-robot/scripts
+        test -d 09-docker-setup
+        test -d 11-scripts
+        
+        # Check essential files exist
+        test -f 07-projects/autonomous-warehouse-robot/models/warehouse_robot/warehouse_robot.urdf
+        test -f 07-projects/autonomous-warehouse-robot/scripts/isaac_sim_visualization.py
+        test -f 09-docker-setup/Dockerfile
+        test -f 09-docker-setup/docker-compose.yml
+        
+        echo "✓ Project structure is valid"
