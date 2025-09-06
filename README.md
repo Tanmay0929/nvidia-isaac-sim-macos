@@ -1,6 +1,6 @@
-# NVIDIA Isaac Sim Learning Environment
+# NVIDIA Isaac Sim for macOS
 
-A comprehensive learning environment for robot simulations using NVIDIA Isaac Sim with ROS2 integration.
+A comprehensive learning environment for robot simulations using NVIDIA Isaac Sim on macOS with ROS2 integration via Docker.
 
 ## 📁 Project Structure
 
@@ -37,10 +37,11 @@ nvidia-issac-sim/
 ## 🚀 Quick Start
 
 ### Prerequisites
-- NVIDIA Isaac Sim (latest version)
-- Docker Desktop (for ROS2)
-- Python 3.8+
-- Git
+- **macOS** (Intel or Apple Silicon)
+- **NVIDIA Isaac Sim** (latest version)
+- **Docker Desktop** (for ROS2)
+- **Python 3.8+**
+- **Git**
 
 ### Setup Steps
 1. **Install Isaac Sim**: Download from [NVIDIA Omniverse](https://www.nvidia.com/en-us/omniverse/)
@@ -83,9 +84,9 @@ nvidia-issac-sim/
    - Topic communication
    - Service and action integration
 
-## 🐳 Docker Setup for ROS2
+## 🐳 Docker Setup for ROS2 on macOS
 
-Since you're on macOS Intel, we'll use Docker for ROS2. See `09-docker-setup/` for detailed instructions.
+This project provides a complete Docker-based ROS2 setup specifically optimized for macOS (Intel and Apple Silicon). See `09-docker-setup/` for detailed instructions.
 
 ## 🛠️ Development Workflow
 
