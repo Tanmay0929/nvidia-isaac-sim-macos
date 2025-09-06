@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  ros2-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: isaac-sim-ros2-dev
+    hostname: ros2-dev
+    network_mode: host
+    environment:
+      - ROS_DOMAIN_ID=0
+      - ROS_DISTRO=humble
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - ./ros2-workspace:/ros2_ws
+      - ./config:/config
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ~/.Xauthority:/root/.Xauthority:rw
+      - /Users/tpancholi/dev/nvidia-issac-sim:/host_workspace
+    stdin_open: true
+    tty: true
+    privileged: true
+    restart: unless-stopped
+    command: bash
+
+  # Optional: ROS2 Bridge service for Isaac Sim
+  ros2-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: isaac-sim-ros2-bridge
+    hostname: ros2-bridge
+    network_mode: host
+    environment:
+      - ROS_DOMAIN_ID=0
+      - ROS_DISTRO=humble
+    volumes:
+      - ./ros2-workspace:/ros2_ws
+      - /Users/tpancholi/dev/nvidia-issac-sim:/host_workspace
+    depends_on:
+      - ros2-dev
+    restart: unless-stopped
+    command: >
+      bash -c "
+        source /ros2_ws/install/setup.bash &&
+        echo 'ROS2 Bridge ready for Isaac Sim connection' &&
+        tail -f /dev/null
+      "
+
+networks:
+  default:
+    driver: bridge

@@ -1,0 +1,132 @@
+name: Isaac Sim Learning Environment CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Lint and validate Python code
+  python-lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort pytest
+    
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Check code formatting with black
+      run: |
+        black --check --diff .
+    
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only --diff .
+
+  # Validate Docker configuration
+  docker-validate:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Validate Docker Compose
+      run: |
+        cd 09-docker-setup
+        docker-compose config
+    
+    - name: Build Docker image (dry run)
+      run: |
+        cd 09-docker-setup
+        docker build --dry-run .
+
+  # Check documentation
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check README files exist
+      run: |
+        test -f README.md
+        test -f QUICK_START.md
+        test -f 01-getting-started/README.md
+        test -f 08-ros2-integration/README.md
+        test -f 09-docker-setup/README.md
+        test -f 10-documentation/learning-roadmap.md
+        test -f 10-documentation/macos-setup-guide.md
+    
+    - name: Check for broken links in markdown
+      run: |
+        # Install markdown-link-check
+        npm install -g markdown-link-check
+        
+        # Check main README files
+        markdown-link-check README.md
+        markdown-link-check QUICK_START.md
+
+  # Security scan
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Test scripts
+  scripts-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Make scripts executable
+      run: |
+        chmod +x 11-scripts/*.sh
+        chmod +x 09-docker-setup/*.sh
+    
+    - name: Test script syntax
+      run: |
+        # Check bash script syntax
+        for script in 11-scripts/*.sh 09-docker-setup/*.sh; do
+          if [ -f "$script" ]; then
+            bash -n "$script"
+            echo "✓ $script syntax is valid"
+          fi
+        done
+    
+    - name: Test Python script syntax
+      run: |
+        # Check Python script syntax
+        find . -name "*.py" -not -path "./.git/*" | while read -r file; do
+          python -m py_compile "$file"
+          echo "✓ $file syntax is valid"
+        done
