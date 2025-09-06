@@ -1,0 +1,10 @@
+# Manipulation status message
+std_msgs/Header header
+bool manipulation_active
+string current_operation
+int32 operations_completed
+float32 success_rate
+int32 collision_count
+int32 objects_detected
+geometry_msgs/PoseStamped current_pose
+geometry_msgs/WrenchStamped current_force

@@ -1,0 +1,9 @@
+# Navigation status message
+std_msgs/Header header
+bool navigation_active
+float32 path_planning_time
+float32 total_distance
+int32 collision_count
+int32 replan_count
+float32 current_velocity
+geometry_msgs/PoseStamped current_pose
